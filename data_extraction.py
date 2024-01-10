@@ -1,17 +1,13 @@
 import yaml
 import psycopg2
-from sqlalchemy import create_engine
-
-
-class DataExtractor:
-    pass
+from sqlalchemy import create_engine, MetaData
 
 class DatabaseConnector:
     
     def __init__(self):
         self.read_creds = self.read_db_creds()
         self.db_engine = self.init_db_engine(self.read_creds)
-        self.list_table = self.list_db_tables(self.db_engine)
+        # self.list_table = self.list_db_tables(self.db_engine)
         
     def read_db_creds(self):
         with open('db_creds.yaml', 'r') as file:
@@ -28,16 +24,34 @@ class DatabaseConnector:
         DATABASE = data['RDS_DATABASE']
         engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
         engine.connect()
+        return engine
         
-    def list_db_tables(self, database):
-        for table in database:
-            print(table)
-            
+        
+
+class DataExtractor(DatabaseConnector):
+    def __init__(self):
+        self.list_tables = self.list_db_tables()
+        
+    def list_db_tables(self):
+        db_engine = super().init_db_engine(super().read_db_creds())
+        metadata = MetaData()
+        metadata.reflect(bind=db_engine)
+        table_names = metadata.tables.keys()
+        print('List of tables:')
+        for table_name in table_names:
+            print(table_name)
+        
+        
+        
+       
         
 try:
-    db_conn = DatabaseConnector()
-    db_init = db_conn.init_db_engine
-    show_table = db_conn.list_db_tables
-    print(db_init)
+    # db_conn = DatabaseConnector()
+    
+    # db_conn.init_db_engine
+    # show_table = db_conn.list_db_tables
+    instance = DataExtractor()
+    instance.list_tables
+    # print(db_init)
 except Exception as e:
     print(f'Error occurred: {e}')
