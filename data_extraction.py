@@ -1,6 +1,5 @@
 import yaml
 import pandas as pd
-import psycopg2
 from sqlalchemy import create_engine, MetaData
 
 class DatabaseConnector:
@@ -29,9 +28,9 @@ class DatabaseConnector:
         
 
 class DataExtractor(DatabaseConnector):
-    # def __init__(self):
-    #     self.list_tables = self.list_db_tables()
-    #     self.read_rds_table = self.read_rds_table()
+    def __init__(self, table_name):
+        super().__init__()
+        self.table_name = table_name
         
     def list_db_tables(self):
         db_engine = super().init_db_engine(super().read_db_creds())
@@ -42,21 +41,20 @@ class DataExtractor(DatabaseConnector):
         for table_name in table_names:
             print(table_name)
     
-    def read_rds_table(self, engine , table_name):
-        df = pd.read_sql_table(table_name, con=engine)
+    def read_rds_table(self):
+        df = pd.read_sql_table(self.table_name, con=self.init_db_engine)
         print(df)
+        return df
         
         
         
 try:
     db_conn = DatabaseConnector()
     engine = db_conn.init_db_engine
-    print(engine)
-    extract = DataExtractor()
-    extract.list_db_tables()
-    # legacy_users data
-    extract.read_rds_table(engine,'legacy_users')
+    extract = DataExtractor('legacy_users')
+    # extract.read_rds_table()
+    # extract.list_db_tables()
     
-    # print(db_init)
+    # df.head()
 except Exception as e:
     print(f'Error occurred: {e}')
