@@ -24,7 +24,10 @@ class DatabaseConnector:
         engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
         engine.connect()
         return engine
+    
+    def upload_to_db(self, data_frame, table_name):
         
+        pass
         
 
 class DataExtractor(DatabaseConnector):
@@ -43,7 +46,6 @@ class DataExtractor(DatabaseConnector):
     
     def read_rds_table(self):
         df = pd.read_sql_table(self.table_name, con=self.init_db_engine)
-        print(df)
         return df
         
         
