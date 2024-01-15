@@ -6,6 +6,7 @@ class DataCleaning:
         
     def clean_user_data(self):
         try:
+            
             extractor = DataExtractor('legacy_users')
             df = extractor.read_rds_table()
             df.sort_values(by=['index'], ascending=True, inplace=True)
@@ -21,12 +22,12 @@ class DataCleaning:
             df.country = df.country.astype('string')
             df.country_code = df.country_code.astype('string')
             df.phone_number = df.phone_number.astype('string')
+            df['phone_number'] = df['phone_number'].replace({r'\+44': '0',r'\+49': '0',r'\+1': '', r'\(': '', r'\)': '', r'-': '', r' ': ''}, regex=True)
             df['join_date'] = pd.to_datetime(df['join_date'], errors='coerce').dt.date
             df.join_date = df.join_date.astype('datetime64[ns]')
-            df = df.dropna()
+            df = df.dropna(inplace=True)
             df.loc[df['country_code'] == 'GGB', 'country_code'] = 'GB'
-            print(len(df[df['country_code'] == 'GGB']))
-            print(df.country_code.unique())
+            
         except Exception as e:
             print(f'Error has Occurred in Clean_user_data: {e}')
                 
