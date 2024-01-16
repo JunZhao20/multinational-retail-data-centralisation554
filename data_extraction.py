@@ -35,9 +35,9 @@ class DatabaseConnector:
         PORT = '5432'
         DATABASE = 'sales_data'
         sales_data_engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
-        sales_data_engine.connect()
-        data_frame.to_sql(name=table_name, con=sales_data_engine, if_exists='replace', index=False)
-        print('Success')
+        with sales_data_engine.connect():
+            data_frame.to_sql(name=table_name, con=sales_data_engine, if_exists='replace', index=False)
+            print(f'Success {table_name} has been uploaded')
         
         
 
@@ -69,16 +69,12 @@ try:
     db_conn = DatabaseConnector()
     engine = db_conn.init_db_engine
     pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
-    dataExtract = DataExtractor()
-    df = dataExtract.retrieve_pdf_data(pdf_path)
-    print(df)
-    # extract = DataExtractor('legacy_users')
-    # from data_cleaning import DataCleaning
-    # data_cleaner = DataCleaning()
-    # df = data_cleaner.clean_user_data()
-    # upload = extract.upload_to_db(df, 'dim_users')
-    # extract.read_rds_table()
-    # extract.list_db_tables()
+    extract = DataExtractor()
+    from data_cleaning import DataCleaning
+    data_cleaner = DataCleaning()
+    df = data_cleaner.clean_card_data()
+    upload = extract.upload_to_db(df, 'dim_card_details')
+    
     
     # df.head()
 except Exception as e:
