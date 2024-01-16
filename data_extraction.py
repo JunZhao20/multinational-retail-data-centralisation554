@@ -26,8 +26,18 @@ class DatabaseConnector:
         return engine
     
     def upload_to_db(self, data_frame, table_name):
+        DATABASE_TYPE = 'postgresql'
+        DBAPI = 'psycopg2'
+        ENDPOINT = 'localhost'
+        USER = 'postgres'
+        PASSWORD = '97231987432'
+        PORT = '5432'
+        DATABASE = 'sales_data'
+        sales_data_engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
+        sales_data_engine.connect()
+        data_frame.to_sql(name=table_name, con=sales_data_engine, if_exists='replace', index=False)
+        print('Success')
         
-        pass
         
 
 class DataExtractor(DatabaseConnector):
@@ -54,9 +64,13 @@ try:
     db_conn = DatabaseConnector()
     engine = db_conn.init_db_engine
     extract = DataExtractor('legacy_users')
+    from data_cleaning import DataCleaning
+    data_cleaner = DataCleaning()
+    df = data_cleaner.clean_user_data()
+    upload = extract.upload_to_db(df, 'dim_users')
     # extract.read_rds_table()
     # extract.list_db_tables()
     
     # df.head()
 except Exception as e:
-    print(f'Error occurred: {e}')
+    print(f'Error occurred in data_extraction: {e}')
