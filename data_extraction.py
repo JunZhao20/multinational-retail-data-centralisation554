@@ -59,8 +59,9 @@ class DataExtractor(DatabaseConnector):
         return df
     
     def retrieve_pdf_data(self, pdf_path):
-        df = tab.read_pdf(pdf_path, pages='all')
-        print(df)
+        # TODO: Concat all pages into one dataframe.
+        df = tab.read_pdf(pdf_path, pages='all', stream=True, multiple_tables=True)
+        return df
         
         
         
