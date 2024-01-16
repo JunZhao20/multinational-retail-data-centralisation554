@@ -3,11 +3,12 @@ import pandas as pd
 class DataCleaning:
     def __init__(self):
         self.cleaned_user_data = self.clean_user_data()
+        self.cleaned_card_data = self.clean_card_data()
         
     def clean_user_data(self):
         from data_extraction import DataExtractor 
-        extractor = DataExtractor('legacy_users')
-        df = extractor.read_rds_table()
+        extractor = DataExtractor()
+        df = extractor.read_rds_table('legacy_users')
         df.sort_values(by=['index'], ascending=True, inplace=True)
         df.set_index('index', inplace=True)
         df.reset_index(inplace=True)
@@ -28,10 +29,23 @@ class DataCleaning:
         df.loc[df['country_code'] == 'GGB', 'country_code'] = 'GB'
         
         return df
-                
+    
+    def clean_card_data(self):
+        from data_extraction import DataExtractor, pdf_path
+        extractor = DataExtractor()
+        df = extractor.retrieve_pdf_data(pdf_path)
+
+        df.expiry_date = pd.to_datetime(df.expiry_date,format='%m/%y', errors='coerce')
+        df.card_provider = df.card_provider.astype('string')
+        df.date_payment_confirmed = pd.to_datetime(df.date_payment_confirmed, errors='coerce')
+        df.card_number = pd.to_numeric(df.card_number, errors='coerce')
+        df.dropna(axis=0, inplace=True)
+        df.card_number = df.card_number.astype('int')
+
+        return df        
         
-# try:
-#     cleaner = DataCleaning()
-#     cleaner.clean_user_data()
-# except Exception as e:
-#     print(f'Error Occurred in data_cleaning {e}')
+try:
+    cleaner = DataCleaning()
+    cleaner.clean_card_data()
+except Exception as e:
+    print(f'Error Occurred in data_cleaning {e}')
