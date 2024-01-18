@@ -1,6 +1,7 @@
 import yaml
 import pandas as pd
 import tabula as tab
+import requests
 from sqlalchemy import create_engine, MetaData
 
 class DatabaseConnector:
@@ -45,6 +46,7 @@ class DataExtractor(DatabaseConnector):
     def __init__(self):
         super().__init__()
         
+        
     def list_db_tables(self):
         db_engine = super().init_db_engine(super().read_db_creds())
         metadata = MetaData()
@@ -53,6 +55,37 @@ class DataExtractor(DatabaseConnector):
         print('List of tables:')
         for table_name in table_names:
             print(table_name)
+    
+    def list_number_of_stores(self, end_point, header):
+        response = requests.get(end_point, headers=header)
+        if response.status_code == 200:
+            data = response.json()
+            print('Success')
+            num_stores = data['number_stores']
+            print(num_stores)
+            return num_stores
+        else:
+            print(f'Request failed with status code: {response.status_code}')
+            print(f'Response text: {response.text}')
+            
+    def retrieve_stores_data(self,store_number, header):
+        json_data = []
+        for num in range(store_number+1):
+            store_data_endpoint = f'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{num}'
+            response = requests.get(store_data_endpoint,headers=header)
+            if response.status_code == 200:
+                data = response.json()
+                json_data.append(data)
+                print(data)
+                
+            else:
+                print(f'error {response.status_code}, {response.text}')
+        
+        df = pd.json_normalize(json_data)
+        df.to_json('stores_data.json', orient='records', lines=True)
+        print(df)
+        return df
+        
     
     def read_rds_table(self, table_name):
         df = pd.read_sql_table(table_name, con=self.init_db_engine)
@@ -63,17 +96,21 @@ class DataExtractor(DatabaseConnector):
         df = pd.concat(extract_pdf, ignore_index=True)
         return df
         
-        
+    
         
 try:
     db_conn = DatabaseConnector()
     engine = db_conn.init_db_engine
-    pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
-    extract = DataExtractor()
-    from data_cleaning import DataCleaning
-    data_cleaner = DataCleaning()
-    df = data_cleaner.clean_card_data()
-    upload = extract.upload_to_db(df, 'dim_card_details')
+    # pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
+    # extract = DataExtractor()
+    # header = {'x-api-key': 'yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'}
+    # num_store_endpoint = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores'
+    # store_number = extract.list_number_of_stores(num_store_endpoint, header)
+    # df_store_data = extract.retrieve_stores_data(store_number, header)
+    # from data_cleaning import DataCleaning
+    # data_cleaner = DataCleaning()
+    # df = data_cleaner.clean_card_data()
+    # upload = extract.upload_to_db(df, 'dim_card_details')
     
     
     # df.head()
