@@ -1,9 +1,7 @@
 import pandas as pd
+import numpy as np
 
 class DataCleaning:
-    def __init__(self):
-        self.cleaned_user_data = self.clean_user_data()
-        self.cleaned_card_data = self.clean_card_data()
         
     def clean_user_data(self):
         from data_extraction import DataExtractor 
@@ -27,13 +25,12 @@ class DataCleaning:
         df.join_date = df.join_date.astype('datetime64[ns]')
         df.dropna(inplace=True)
         df.loc[df['country_code'] == 'GGB', 'country_code'] = 'GB'
-        
-        return df
+        df.to_pickle('user_data.pkl')
     
     def clean_card_data(self):
         from data_extraction import DataExtractor, pdf_path
-        extractor = DataExtractor()
-        df = extractor.retrieve_pdf_data(pdf_path)
+        extract = DataExtractor()
+        df = extract.retrieve_pdf_data(pdf_path)
 
         df.expiry_date = pd.to_datetime(df.expiry_date,format='%m/%y', errors='coerce')
         df.card_provider = df.card_provider.astype('string')
@@ -41,11 +38,34 @@ class DataCleaning:
         df.card_number = pd.to_numeric(df.card_number, errors='coerce')
         df.dropna(axis=0, inplace=True)
         df.card_number = df.card_number.astype('int')
+        df.to_pickle('card_data.pkl')
+    
+    def called_clean_store_data (self):
+        df = pd.read_json('./extracted_data/stores_data.json', lines=True)
+        df.address = df.address.astype('string')
+        df.address = df.address.str.replace(r'^\s+|\s+$|\n', ' ', regex=True)
+        df.address = df.address.str.strip()
+        df.drop(0, inplace=True)
+        df.drop('lat', axis=1, inplace=True)
+        df.replace('NULL', np.nan, inplace=True)
+        df.longitude = pd.to_numeric(df.longitude, errors='coerce')
+        df.locality = df.locality.astype('string')
+        df.store_code = df.store_code.astype('string')
+        df.staff_numbers = pd.to_numeric(df.staff_numbers, errors='coerce')
+        df.dropna(axis=0, inplace=True)
+        from dateutil.parser import parse
+        df['opening_date'] = df['opening_date'].apply(parse)
+        df['opening_date'] = pd.to_datetime(df['opening_date'], infer_datetime_format=True, errors='coerce')
+        df.store_type = df.store_type.astype('string')
+        df.latitude = pd.to_numeric(df.latitude, errors='coerce')
+        df.country_code = df.country_code.astype('string')
+        df.continent = df.continent.astype('string')
+        df.to_pickle('stores_data.pkl')
 
-        return df        
         
+    
 try:
     cleaner = DataCleaning()
-    cleaner.clean_card_data()
+    cleaner.called_clean_store_data()
 except Exception as e:
     print(f'Error Occurred in data_cleaning {e}')
