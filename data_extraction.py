@@ -101,8 +101,8 @@ class DataExtractor(DatabaseConnector):
 try:
     db_conn = DatabaseConnector()
     engine = db_conn.init_db_engine
-    # pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
-    # extract = DataExtractor()
+    pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
+    extract = DataExtractor()
     # header = {'x-api-key': 'yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'}
     # num_store_endpoint = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores'
     # store_number = extract.list_number_of_stores(num_store_endpoint, header)
@@ -110,7 +110,8 @@ try:
     # from data_cleaning import DataCleaning
     # data_cleaner = DataCleaning()
     # df = data_cleaner.clean_card_data()
-    # upload = extract.upload_to_db(df, 'dim_card_details')
+    df = pd.read_pickle('./cleaned_data/stores_data.pkl')
+    upload = extract.upload_to_db(df, 'dim_store_details')
     
     
     # df.head()
