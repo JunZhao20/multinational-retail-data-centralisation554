@@ -2,6 +2,8 @@ import yaml
 import pandas as pd
 import tabula as tab
 import requests
+import boto3
+import io
 from sqlalchemy import create_engine, MetaData
 
 class DatabaseConnector:
@@ -94,15 +96,29 @@ class DataExtractor(DatabaseConnector):
     def retrieve_pdf_data(self, pdf_path):
         extract_pdf = tab.read_pdf(pdf_path, pages='all', multiple_tables=True)
         df = pd.concat(extract_pdf, ignore_index=True)
+        print(df)
         return df
         
-    
+    def extract_from_s3(self, address):
+        address_split = address.split('/')
+        bucket = address_split[2]
+        key = address_split[3]
+        s3 = boto3.client('s3')
+        response = s3.get_object(Bucket=bucket, Key=key)
+        content = response['Body'].read()
+        df = pd.read_csv(io.BytesIO(content))
+        df.to_csv('products.csv')
+        
         
 try:
     db_conn = DatabaseConnector()
     engine = db_conn.init_db_engine
     pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
+    address = 's3://data-handling-public/products.csv'
     extract = DataExtractor()
+    extract.extract_from_s3(address)
+    
+    
     # header = {'x-api-key': 'yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'}
     # num_store_endpoint = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores'
     # store_number = extract.list_number_of_stores(num_store_endpoint, header)
@@ -110,8 +126,8 @@ try:
     # from data_cleaning import DataCleaning
     # data_cleaner = DataCleaning()
     # df = data_cleaner.clean_card_data()
-    df = pd.read_pickle('./cleaned_data/stores_data.pkl')
-    upload = extract.upload_to_db(df, 'dim_store_details')
+    # df = pd.read_pickle('./cleaned_data/stores_data.pkl')
+    # upload = extract.upload_to_db(df, 'dim_store_details')
     
     
     # df.head()
