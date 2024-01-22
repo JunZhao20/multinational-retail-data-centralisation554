@@ -26,18 +26,18 @@ class DataCleaning:
         df.dropna(inplace=True)
         df.loc[df['country_code'] == 'GGB', 'country_code'] = 'GB'
         df.to_pickle('user_data.pkl')
-    
-    def clean_card_data(self):
+        
+    def clean_card_data(self): 
         from data_extraction import DataExtractor, pdf_path
         extract = DataExtractor()
         df = extract.retrieve_pdf_data(pdf_path)
-
         df.expiry_date = pd.to_datetime(df.expiry_date,format='%m/%y', errors='coerce')
         df.card_provider = df.card_provider.astype('string')
         df.date_payment_confirmed = pd.to_datetime(df.date_payment_confirmed, errors='coerce')
         df.card_number = pd.to_numeric(df.card_number, errors='coerce')
         df.dropna(axis=0, inplace=True)
         df.card_number = df.card_number.astype('int')
+        
         df.to_pickle('card_data.pkl')
     
     def called_clean_store_data (self):
@@ -60,12 +60,29 @@ class DataCleaning:
         df.latitude = pd.to_numeric(df.latitude, errors='coerce')
         df.country_code = df.country_code.astype('string')
         df.continent = df.continent.astype('string')
+        
+        df.loc[df['continent'] == 'eeAmerica', 'continent'] = 'America'
+        df.loc[df['continent'] == 'eeEurope', 'continent'] = 'Europe'
+
+        df.reset_index(drop=True, inplace=True)
+        
+        df.drop('index', axis=1, inplace=True)
+        df['index'] = range(len(df))
+        df.insert(0, 'index', df.pop('index'))
+
+
         df.to_pickle('stores_data.pkl')
 
-        
+    def convert_product_weights(self, df):
+        pass
+    
+    def clean_products_data(self):
+        pass
+    
     
 try:
     cleaner = DataCleaning()
     cleaner.called_clean_store_data()
+    # cleaner.clean_card_data()
 except Exception as e:
     print(f'Error Occurred in data_cleaning {e}')
