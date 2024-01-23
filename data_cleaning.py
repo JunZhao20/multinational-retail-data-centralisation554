@@ -74,7 +74,33 @@ class DataCleaning:
         df.to_pickle('stores_data.pkl')
 
     def convert_product_weights(self, df):
-        pass
+        
+        df.dropna(subset=['weight'], inplace=True)
+        df.weight = df.weight.astype('string')
+       
+        # Calculates mass value of products that contain multiple items
+        df[['Multiplier', 'Mass']] = df['weight'].str.extract(r'(\d+) x (\d+)g')
+        filtered_rows = df['weight'].str.contains(' x ')
+    
+        df.loc[filtered_rows, 'Total_Grams'] = pd.to_numeric(df.loc[filtered_rows, 'Multiplier']) * pd.to_numeric(df.loc[filtered_rows, 'Mass'])
+        df.loc[filtered_rows, 'weight'] = df.loc[filtered_rows, 'Total_Grams'].astype(str) + 'g'
+        df.drop(['Mass','Multiplier', 'Total_Grams'], axis=1, inplace=True)
+
+        non_weight = df.weight.str.isupper()
+        df.drop(df[non_weight].index, axis=0 ,inplace=True)
+        
+
+        df.weight = df.weight.str.replace('g', '')
+        df.weight = df.weight.str.replace('ml', '')
+        
+        conversion_rows = df['weight'].str.isnumeric()
+        df.loc[conversion_rows, 'weight'] = (pd.to_numeric(df.loc[conversion_rows, 'weight'])/1000).astype('str')
+        df.weight = df.weight.str.replace('k', '')
+        df.weight = pd.to_numeric(df.weight, errors='coerce')
+        df.dropna(inplace=True)
+        df.to_csv('product_unit_converted.csv', index=False)
+
+        # return df
     
     def clean_products_data(self):
         pass
@@ -82,7 +108,7 @@ class DataCleaning:
     
 try:
     cleaner = DataCleaning()
-    cleaner.called_clean_store_data()
-    # cleaner.clean_card_data()
+    df = pd.read_csv('./extracted_data/products.csv')
+    cleaner.clean_products_data()
 except Exception as e:
     print(f'Error Occurred in data_cleaning {e}')
