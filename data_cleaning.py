@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from dateutil.parser import parse
 
 class DataCleaning:
         
@@ -53,7 +54,6 @@ class DataCleaning:
         df.store_code = df.store_code.astype('string')
         df.staff_numbers = pd.to_numeric(df.staff_numbers, errors='coerce')
         df.dropna(axis=0, inplace=True)
-        from dateutil.parser import parse
         df['opening_date'] = df['opening_date'].apply(parse)
         df['opening_date'] = pd.to_datetime(df['opening_date'], infer_datetime_format=True, errors='coerce')
         df.store_type = df.store_type.astype('string')
@@ -98,17 +98,29 @@ class DataCleaning:
         df.weight = df.weight.str.replace('k', '')
         df.weight = pd.to_numeric(df.weight, errors='coerce')
         df.dropna(inplace=True)
-        df.to_csv('product_unit_converted.csv', index=False)
-
+        df.to_csv('product_unit_converted.csv')
         # return df
     
     def clean_products_data(self):
-        pass
+        
+        df = pd.read_csv('./cleaned_data/product_unit_converted.csv')
+        df = df.iloc[:, 2:]
+        df.reset_index(drop=True)
+        df.product_name = df.product_name.astype('string')
+        df.product_price = df.product_price.str.replace('£', '')
+        df.product_price = pd.to_numeric(df.product_price)
+        df.category = df.category.astype('string')
+        df['date_added'] = df['date_added'].apply(parse)
+        df['date_added'] = pd.to_datetime(df['date_added'], infer_datetime_format=True, errors='coerce')
+        df.uuid = df.uuid.astype('string')
+        df.removed = df.removed.astype('string')
+        df.product_code = df.product_code.astype('string')
+        df.to_pickle('products.pkl')
     
     
 try:
     cleaner = DataCleaning()
-    df = pd.read_csv('./extracted_data/products.csv')
+    
     cleaner.clean_products_data()
 except Exception as e:
     print(f'Error Occurred in data_cleaning {e}')
