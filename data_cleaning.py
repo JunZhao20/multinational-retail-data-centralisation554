@@ -117,10 +117,40 @@ class DataCleaning:
         df.product_code = df.product_code.astype('string')
         df.to_pickle('products.pkl')
     
+    def clean_orders_data(self):
+        df = pd.read_pickle('./extracted_data/orders_table.pkl')
+        drop_columns = ['first_name', 'last_name', '1', 'level_0']
+        df.drop(columns=drop_columns, inplace=True)
+        
+        df.date_uuid = df.date_uuid.astype('string')
+        df.user_uuid = df.user_uuid.astype('string')
+        df.store_code = df.store_code.astype('string')
+        df.product_code = df.product_code.astype('string')
+        df.reset_index(drop=True, inplace=True)
+        df.drop('index', axis=1, inplace=True)
+        df['index'] = range(len(df))
+        df.insert(0, 'index', df.pop('index'))
+        df.to_pickle('orders_table.pkl')
+    
+    def clean_date_times(self):
+        df = pd.read_json('./extracted_data/date_time.json')
+        df['date'] = df.year+ '-' + df.month + '-' + df.day
+        df.insert(1, 'date', df.pop('date'))
+        column_drop_year_month_date = ['month', 'year', 'day']
+        df.drop(columns=column_drop_year_month_date, inplace=True)
+        
+        df.date = pd.to_datetime(df.date, errors='coerce')
+        df.dropna(inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        df.timestamp = pd.to_datetime(df.timestamp, format='%H:%M:%S', errors='coerce').dt.time
+        df.time_period = df.time_period.astype('string')
+        df.date_uuid = df.date_uuid.astype('string')
+        
+        df.to_pickle('date_times.pkl')
+        
+        
     
 try:
     cleaner = DataCleaning()
-    
-    cleaner.clean_products_data()
 except Exception as e:
     print(f'Error Occurred in data_cleaning {e}')
