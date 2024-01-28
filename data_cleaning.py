@@ -51,21 +51,22 @@ class DataCleaning:
         This method is used to clean the extracted user card details data from a pdf file path. It then returns card_data.feather file
         """
         
-        from data_extraction import DataExtractor, pdf_path
+        from data_extraction import DataExtractor
         extract = DataExtractor()
+        pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
         df = extract.retrieve_pdf_data(pdf_path)
         
         # Assigning correct Dtypes
-        df.expiry_date = pd.to_datetime(df.expiry_date,format='%m/%y', errors='coerce')
+        # df.expiry_date = pd.to_datetime(df.expiry_date,format='%m/%y', errors='coerce')
+        df.expiry_date = df.expiry_date.astype('string')
         df.card_provider = df.card_provider.astype('string')
         df.date_payment_confirmed = pd.to_datetime(df.date_payment_confirmed, errors='coerce')
         df.card_number = pd.to_numeric(df.card_number, errors='coerce')
-        df.card_number = df.card_number.astype('int')
-        
-         # Correcting Index after dropping rows
         df.dropna(axis=0, inplace=True)
+        df.card_number = df.card_number.astype('int')
+       
+         
         df.reset_index(drop=True, inplace=True)
-
         df.to_feather('card_data.feather')
     
     # Cleans the Extracted stores_data from AWS S3 bucket
@@ -223,16 +224,13 @@ class DataCleaning:
         df.time_period = df.time_period.astype('string')
         df.date_uuid = df.date_uuid.astype('string')
         
-        # TODO : Upload and do task
         df.to_feather('date_times.feather')
         
         
     
 try:
-    # cleaner = DataCleaning()
-    # cleaner.clean_date_times()
+    cleaner = DataCleaning()
+    cleaner.clean_card_data()
     
-    # print(df.card_number.duplicated().sum())
-    print(len('4999876853991480320'))
 except Exception as e:
     print(f'Error Occurred in data_cleaning {e}')
