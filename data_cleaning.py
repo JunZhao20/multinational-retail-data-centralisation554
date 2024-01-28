@@ -207,26 +207,32 @@ class DataCleaning:
         df = pd.read_json('./extracted_data/date_time.json')
         
         # Joining year, month and day to form a date column
-        df['date'] = df.year+ '-' + df.month + '-' + df.day
-        df.insert(1, 'date', df.pop('date'))
-        column_drop_year_month_date = ['month', 'year', 'day']
-        df.drop(columns=column_drop_year_month_date, inplace=True)
+        # df['date'] = df.year+ '-' + df.month + '-' + df.day
+        # df.insert(1, 'date', df.pop('date'))
+        # column_drop_year_month_date = ['month', 'year', 'day']
+        # df.drop(columns=column_drop_year_month_date, inplace=True)
         
-        df.date = pd.to_datetime(df.date, errors='coerce')
+        # df.date = pd.to_datetime(df.date, errors='coerce')
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
         
         # Correctly assigning Dtype
         df.timestamp = pd.to_datetime(df.timestamp, format='%H:%M:%S', errors='coerce').dt.time
+        df.dropna(inplace=True)
+        df.reset_index(drop=True, inplace=True)
         df.time_period = df.time_period.astype('string')
         df.date_uuid = df.date_uuid.astype('string')
         
+        # TODO : Upload and do task
         df.to_feather('date_times.feather')
         
         
     
 try:
-    cleaner = DataCleaning()
-   
+    # cleaner = DataCleaning()
+    # cleaner.clean_date_times()
+    
+    # print(df.card_number.duplicated().sum())
+    print(len('4999876853991480320'))
 except Exception as e:
     print(f'Error Occurred in data_cleaning {e}')
