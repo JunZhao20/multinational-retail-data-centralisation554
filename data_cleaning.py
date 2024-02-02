@@ -4,6 +4,35 @@ from dateutil.parser import parse
 
 class DataCleaning:
     
+    def clean_test_user(self):
+        df = pd.read_feather('./extracted_data/test_user.feather')
+        df = df[~df.user_uuid.str.isupper()]
+        try:
+            df['date_of_birth'] = pd.to_datetime(df['date_of_birth'], format='%Y-%B-%d')
+            df['join_date'] = pd.to_datetime(df['join_date'], format='%Y-%B-%d')
+
+        except Exception as e:
+            try:
+                df['date_of_birth'] = pd.to_datetime(df['date_of_birth'], format='%Y-%B-%d').dt.strftime('%Y-%m-%d')
+                df['join_date'] = pd.to_datetime(df['join_date'], format='%Y-%B-%d').dt.strftime('%Y-%m-%d')
+
+            except Exception as e:
+                print(f'Error has occured within clean_user_test : {e}')
+                
+        df.phone_number = df.phone_number.astype('string')
+
+        df['phone_number'] = df['phone_number'].replace({r'\+44': '0',r'\+49': '0',r'\+1': '', r'\(': '', r'\)': '', r'-': '', r'\.':'' ,r' ': ''}, regex=True)
+        df.loc[df['country_code'] == 'GGB', 'country_code'] = 'GB'
+        df.sort_values(by=['index'], ascending=True, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        df.drop('index', axis=1, inplace=True)
+        df['index'] = range(len(df))
+        df.insert(0, 'index', df.pop('index'))
+
+        
+
+        # df.to_feather('./cleaned_data/clean_test_user.feather')
+    
     def clean_user_data(self):
         
         """
@@ -16,34 +45,31 @@ class DataCleaning:
         extractor = DataExtractor()
         df = extractor.read_rds_table('legacy_users')
         
-        # Assigning correct Dtypes
-        df.first_name = df.first_name.astype('string')
-        df.last_name = df.last_name.astype('string')    
-        df['date_of_birth'] = pd.to_datetime(df['date_of_birth'], errors='coerce').dt.date
-        df.date_of_birth = df.date_of_birth.astype('datetime64[ns]')
-        df.company = df.company.astype('string')
-        df.email_address = df.email_address.astype('string')
-        df.address = df.address.astype('string')
-        df.country = df.country.astype('string')
-        df.country_code = df.country_code.astype('string')
+        df = df[~df.user_uuid.str.isupper()]
+        try:
+            df['date_of_birth'] = pd.to_datetime(df['date_of_birth'], format='%Y-%B-%d')
+            df['join_date'] = pd.to_datetime(df['join_date'], format='%Y-%B-%d')
+
+        except Exception as e:
+            try:
+                df['date_of_birth'] = pd.to_datetime(df['date_of_birth'], format='%Y-%B-%d').dt.strftime('%Y-%m-%d')
+                df['join_date'] = pd.to_datetime(df['join_date'], format='%Y-%B-%d').dt.strftime('%Y-%m-%d')
+
+            except Exception as e:
+                print(f'Error has occured within clean_user_test : {e}')
+                
         df.phone_number = df.phone_number.astype('string')
-        df['join_date'] = pd.to_datetime(df['join_date'], errors='coerce').dt.date
-        df.join_date = df.join_date.astype('datetime64[ns]')
-        # Applying regex to phone_number for readability and consistency
-        df['phone_number'] = df['phone_number'].replace({r'\+44': '0',r'\+49': '0',r'\+1': '', r'\(': '', r'\)': '', r'-': '', r' ': ''}, regex=True)
-        
-        # Corrects typos
+
+        df['phone_number'] = df['phone_number'].replace({r'\+44': '0',r'\+49': '0',r'\+1': '', r'\(': '', r'\)': '', r'-': '', r'\.':'' ,r' ': ''}, regex=True)
         df.loc[df['country_code'] == 'GGB', 'country_code'] = 'GB'
-        
-        # Correcting Index after dropping rows
-        df.dropna(inplace=True)
         df.sort_values(by=['index'], ascending=True, inplace=True)
         df.reset_index(drop=True, inplace=True)
         df.drop('index', axis=1, inplace=True)
         df['index'] = range(len(df))
         df.insert(0, 'index', df.pop('index'))
         
-        df.to_feather('user_data.feather')
+        
+        df.to_feather('./cleaned_data/user_data.feather')
     
     def clean_card_data(self): 
         
@@ -230,7 +256,7 @@ class DataCleaning:
     
 try:
     cleaner = DataCleaning()
-    cleaner.clean_card_data()
+    cleaner.clean_test_user()
     
 except Exception as e:
     print(f'Error Occurred in data_cleaning {e}')
