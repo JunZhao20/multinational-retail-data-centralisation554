@@ -69,8 +69,7 @@ class DatabaseConnector:
             
 try:
     extract = DatabaseConnector()
-    df = pd.read_feather('./cleaned_data/date_times.feather')
-    upload = extract.upload_to_db(df, 'dim_date_times')
+
     
 except Exception as e:
     print(f'Error in database_utils.py {e}')
