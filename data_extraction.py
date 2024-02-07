@@ -108,6 +108,7 @@ class DataExtractor(DatabaseConnector):
         
         extract_pdf = tab.read_pdf(pdf_path, pages='all', multiple_tables=True)
         df = pd.concat(extract_pdf, ignore_index=True)
+        
         return df
         
     def extract_from_s3(self, address):
@@ -134,10 +135,10 @@ try:
         db_conn = DatabaseConnector()
         engine = db_conn.init_db_engine
         extract = DataExtractor()
-       
+     
+
     
-    # df = pd.read_pickle('./cleaned_data/card_data.pkl')
-    # upload = extract.upload_to_db(df, 'dim_card_details')
+    
     
     
 except Exception as e:
