@@ -46,10 +46,13 @@ UPDATE dim_store_details
     SET address = NULL,
         longitude = NULL, 
         locality = NULL,
-        latitude = NULL
+        latitude = NULL,
+        country_code = 'GB'
     WHERE index = 0;
 
-SELECT LENGTH(store_code) as len_code FROM dim_store_details ORDER BY len_code DESC
+ALTER TABLE dim_store_details
+ALTER COLUMN country_code DROP NOT NULL;
+
 
 ALTER TABLE dim_store_details
 	ALTER COLUMN longitude TYPE FLOAT USING longitude::FLOAT,
