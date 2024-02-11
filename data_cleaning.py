@@ -209,17 +209,8 @@ class DataCleaning:
 
         df.product_code = df.product_code.astype('string')
         
-    
-        df = df.drop_duplicates(subset=['date_uuid', 'user_uuid','store_code','product_code'])
-        df.drop_duplicates(subset=['card_number'], inplace=True)
-     
-
-        df.reset_index(drop=True, inplace=True)
-        df.drop('index', axis=1, inplace=True)
-        df['index'] = range(len(df))
-        df.insert(0, 'index', df.pop('index'))
         
-        df.to_feather('./cleaned_data/orders_table.feather')
+        df.to_feather('./cleaned_data/new_orders_table.feather')
     
     def clean_date_times(self):
         
@@ -247,7 +238,7 @@ class DataCleaning:
     
 try:
     cleaner = DataCleaning()
-    # cleaner.clean_card_data()
+   
     
 except Exception as e:
     print(f'Error Occurred in data_cleaning {e}')
