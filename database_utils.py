@@ -69,8 +69,7 @@ class DatabaseConnector:
             
 try:
     extract = DatabaseConnector()
-
-    
+   
 except Exception as e:
     print(f'Error in database_utils.py {e}')
     
