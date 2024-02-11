@@ -15,9 +15,21 @@ In an effort to become more data-driven, the organisation would like to make its
 - Centralised location is stored and managed on postgreSQL
 - Uses pandas module to clean and extract data from the various sources
 - Cleaned data is stored using the feather format because:
+
   - Fast read and write operations.
   - Language-agnostic, can be used with multiple programming languages.
   - Columnar format, optimized for DataFrames.
+
+- Queries:
+  - Number of stores each country
+  - Location with the most stores
+  - Largest amount of sales produced in each month
+  - Number of sales online and offline
+  - Total and percentage of sales of all store types
+  - Highest cost of sales produced in a month in a each year
+  - Staff headcount
+  - German store type with the most sales
+  - The average time taken between each sale grouped by year
 
 ## Installation
 
