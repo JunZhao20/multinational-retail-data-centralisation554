@@ -86,11 +86,30 @@ GROUP BY store_type, country_code
 
 -- TASK 9
 
+WITH event_timestamps AS (
+    SELECT 
+        CAST(year || '-' || month || '-' || day || ' ' || timestamp AS TIMESTAMP) AS event_time,
+        year
+    FROM dim_date_times
+),
+time_diff AS (
+    SELECT 
+        year,
+        event_time,
+        LEAD(event_time) OVER (PARTITION BY year ORDER BY event_time) AS next_event_time,
+        LEAD(event_time) OVER (PARTITION BY year ORDER BY event_time) - event_time AS time_difference
+    FROM event_timestamps
+)
+SELECT 
+    year,
+    CONCAT(
+        '"hours": ', EXTRACT(HOUR FROM AVG(time_difference)), 
+        ', "minutes": ', EXTRACT(MINUTE FROM AVG(time_difference)), 
+        ', "seconds": ', CAST(EXTRACT(SECOND FROM AVG(time_difference)) AS INTEGER),
+        ', "milliseconds": ', CAST(EXTRACT(MILLISECONDS FROM AVG(time_difference)) AS INTEGER)
+    ) AS actual_time_taken
+FROM time_diff
+GROUP BY year
+ORDER BY EXTRACT(EPOCH FROM AVG(time_difference)) DESC; 
 
 
-SELECT * FROM dim_date_times
-SELECT * FROM dim_users
-SELECT * FROM dim_products
-SELECT * FROM orders_table
-SELECT * FROM dim_store_details
-SELECT * FROM dim_card_details
